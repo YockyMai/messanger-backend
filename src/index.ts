@@ -1,14 +1,19 @@
 import mongoose from 'mongoose';
-
+import express from 'express';
+import { UserModel } from './Schemas/';
+import bodyParser from 'body-parser';
+import { UserController } from './Controllers';
 require('dotenv').config();
-const express = require('express');
-const app = express();
 
+const app = express();
+const User = new UserController();
 const PORT = process.env.PORT || 3000;
 
-app.get('/', function (req: any, res: any) {
-	res.send('hello world');
-});
+app.use(bodyParser.json());
+
+app.get('/user/:id', User.index);
+
+app.post('/user/registration', User.create);
 
 const start = async () => {
 	try {
