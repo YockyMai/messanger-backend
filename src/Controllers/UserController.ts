@@ -1,5 +1,5 @@
 import express from 'express';
-import { UserModel } from '../Schemas';
+import { UserModel } from '../Models';
 
 class UserController {
 	async index(req: express.Request, res: express.Response) {
@@ -32,6 +32,21 @@ class UserController {
 					err,
 				});
 			});
+	}
+
+	delete(req: express.Request, res: express.Response) {
+		const _id = req.params.id;
+		UserModel.findByIdAndRemove(_id, (err: Error, doc: Document) => {
+			if (err) {
+				return res.status(404).json({
+					message: 'User not found',
+				});
+			}
+			console.log(doc);
+			return res.status(200).json({
+				message: 'User deleted successfully',
+			});
+		});
 	}
 }
 

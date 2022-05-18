@@ -1,19 +1,24 @@
 import mongoose from 'mongoose';
 import express from 'express';
-import { UserModel } from './Schemas/';
+import { UserModel } from './Models';
 import bodyParser from 'body-parser';
 import { UserController } from './Controllers';
+import DialogController from './Controllers/DialogController';
 require('dotenv').config();
 
 const app = express();
 const User = new UserController();
+const Dialog = new DialogController();
 const PORT = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
 
 app.get('/user/:id', User.index);
-
 app.post('/user/registration', User.create);
+app.delete('/user/:id', User.delete);
+
+app.get('/dialog/:id', Dialog.index);
+app.post('/dialog', Dialog.create);
 
 const start = async () => {
 	try {

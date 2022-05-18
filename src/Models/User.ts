@@ -1,7 +1,17 @@
 import mongoose, { Schema } from 'mongoose';
 import isEmail from 'validator/lib/isEmail';
 
-const UserSchema = new Schema(
+interface IUser extends Document {
+	email: string;
+	fullname: string;
+	password: string;
+	confirmed: boolean;
+	avatar?: string;
+	confirm_hash?: string;
+	last_seen?: Date;
+}
+
+const UserSchema = new Schema<IUser>(
 	{
 		email: {
 			type: String,
