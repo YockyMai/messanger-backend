@@ -1,6 +1,6 @@
 import mongoose, { Model, Schema } from 'mongoose';
 
-interface IDialog extends Document {
+export interface IDialog extends Document {
 	author: {
 		type: Schema.Types.ObjectId;
 		ref: string;

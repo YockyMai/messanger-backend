@@ -1,10 +1,11 @@
+import { IDialog } from './../Models/Dialogs';
 import express from 'express';
-import { DialogModel, UserModel } from '../Models';
+import { DialogModel, MessageModel, UserModel } from '../Models';
 
 class DialogController {
 	index(req: express.Request, res: express.Response) {
-		const authorId = req.params.id;
-		DialogModel.find({ author: authorId })
+		const userID = req.params.id;
+		DialogModel.find({ $or: [{ author: userID }, { partner: userID }] })
 			.populate(['author', 'partner'])
 			.exec((err, dialogs) => {
 				if (err) {
@@ -14,23 +15,29 @@ class DialogController {
 			});
 	}
 	async create(req: express.Request, res: express.Response) {
-		const { author, partner } = req.body;
-
-		const Dialog = new DialogModel({ author, partner });
+		const { author, partner, text } = req.body;
 
 		const existAuthor = await UserModel.findById(author);
 		const existPartner = await UserModel.findById(partner);
 
+		const Dialog = new DialogModel({ author, partner });
+
 		if (existAuthor && existPartner) {
 			Dialog.save()
 				.then(dialog => {
-					console.log(dialog);
-					return res.status(200).json({
-						message: 'Dialog created',
+					const Message = new MessageModel({
+						text,
+						dialog: dialog._id,
+						user: author,
+					});
+					Message.save().then(messageObj => {
+						return res.json({
+							messageObj,
+							dialog,
+						});
 					});
 				})
 				.catch(err => {
-					console.log(err);
 					return res.status(400).json({
 						err,
 					});

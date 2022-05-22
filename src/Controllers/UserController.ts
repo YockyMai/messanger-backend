@@ -20,10 +20,11 @@ class UserController {
 		};
 		const user = new UserModel(userData);
 		user.save()
-			.then(() => {
+			.then(user => {
 				console.log('saved');
 				return res.send({
 					auth: true,
+					user,
 				});
 			})
 			.catch((err: {}) => {
