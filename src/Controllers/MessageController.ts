@@ -15,6 +15,27 @@ class MessageController {
 				return res.json(message);
 			});
 	}
+	findByText(req: express.Request, res: express.Response) {
+		const text = req.params.text;
+		const dialogID = req.params.dialog;
+
+		MessageModel.find(
+			{
+				$and: [
+					{ text: { $regex: text, $options: 'i' } },
+					{ dialog: dialogID },
+				],
+			},
+			(err: Error, messages: IMessage[]) => {
+				if (err) {
+					return res.json(err);
+				}
+				return res.json({
+					messages,
+				});
+			},
+		);
+	}
 	create(req: express.Request, res: express.Response) {
 		const { text, dialogID, user } = req.body;
 
@@ -42,7 +63,7 @@ class MessageController {
 		MessageModel.findByIdAndRemove(_id, (err: Error, message: IMessage) => {
 			if (err) {
 				return res.status(404).json({
-					message: 'Message ${} not found',
+					message: `Message ${message.text} not found`,
 				});
 			}
 			return res.json({

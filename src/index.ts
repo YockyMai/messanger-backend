@@ -7,14 +7,17 @@ import {
 	DialogController,
 	MessageController,
 } from './Controllers';
+import updateLastSeen from './middleware/updateLastSeen';
 require('dotenv').config();
 
 const app = express();
+
 const User = new UserController();
 const Dialog = new DialogController();
 const Message = new MessageController();
 const PORT = process.env.PORT || 3000;
 
+app.use(updateLastSeen);
 app.use(bodyParser.json());
 
 app.get('/user/:id', User.index);
@@ -27,6 +30,7 @@ app.post('/dialog', Dialog.create);
 app.get('/message/:id', Message.index);
 app.post('/message', Message.create);
 app.delete('/message/:id', Message.delete);
+app.get('/message/find/:dialog/:text', Message.findByText);
 
 const start = async () => {
 	try {
