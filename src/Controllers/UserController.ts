@@ -1,5 +1,8 @@
+import { IUser } from './../Models/User';
 import express from 'express';
 import { UserModel } from '../Models';
+import createJwtToken from '../utils/createJwtToken';
+import { LoginValidator } from '../utils/validation/login';
 
 class UserController {
 	async index(req: express.Request, res: express.Response) {
@@ -13,22 +16,32 @@ class UserController {
 		});
 	}
 	create(req: express.Request, res: express.Response) {
+		const loginValidator = new LoginValidator();
+
 		const userData = {
 			email: req.body.email,
 			password: req.body.password,
 			fullname: req.body.fullname,
 		};
 		const user = new UserModel(userData);
+
+		if (
+			!loginValidator.email(userData.email) ||
+			!loginValidator.password(userData.password)
+		) {
+			return res.status(400).json({
+				message: 'Validation failed',
+			});
+		}
 		user.save()
 			.then(user => {
-				console.log('saved');
-				return res.send({
+				return res.json({
 					auth: true,
 					user,
 				});
 			})
 			.catch((err: {}) => {
-				return res.send({
+				return res.json({
 					auth: false,
 					err,
 				});

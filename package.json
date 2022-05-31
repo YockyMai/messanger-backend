@@ -9,12 +9,14 @@
 		"start": "ts-node src/index.ts"
 	},
 	"dependencies": {
+		"@types/bcrypt": "^5.0.0",
 		"@types/express": "^4.17.13",
 		"@types/jsonwebtoken": "^8.5.8",
 		"@types/lodash": "^4.14.182",
 		"@types/mongoose": "^5.11.97",
 		"@types/node": "^17.0.32",
 		"@types/validator": "^13.7.2",
+		"bcrypt": "^5.0.1",
 		"body-parser": "^1.20.0",
 		"cors": "^2.8.5",
 		"dotenv": "^16.0.1",

@@ -1,24 +1,33 @@
 import jwt from 'jsonwebtoken';
-import { IUser } from '../Models/User';
 import { reduce } from 'lodash';
 
-export default (user: IUser) => {
+interface IUserAuthData {
+	password: string;
+	email: string;
+}
+
+export default (user: IUserAuthData) => {
+	const data = reduce(
+		user,
+		(result: any, value: string, key: string) => {
+			if (key !== 'password') {
+				result[key] = value;
+			}
+			return result;
+		},
+		{},
+	);
+	console.log(data);
+
 	let token = jwt.sign(
 		{
-			data: reduce(
-				user,
-				(result, value: string, key) => {
-					if (key !== 'password') {
-						(result[value] || (result[value] = [])).push(key);
-					}
-					return result;
-				},
-				{},
-			),
+			data,
 		},
 		process.env.JWT_SECRET,
 		{
-			expiresIn: process.env.JWT_MAX_AGE,
+			expiresIn: '2 days',
 		},
 	);
+
+	return token;
 };

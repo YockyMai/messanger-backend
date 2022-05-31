@@ -1,5 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
 import isEmail from 'validator/lib/isEmail';
+import bcrypt from 'bcrypt';
 
 export interface IUser extends Document {
 	email: string;
@@ -42,6 +43,21 @@ const UserSchema = new Schema<IUser>(
 		timestamps: true, // added 2 properties - updatedAt, createdAt
 	},
 );
+
+UserSchema.pre('save', function (next) {
+	var user = this;
+
+	bcrypt.genSalt((err, salt) => {
+		bcrypt.hash(user.password, salt, (err, hash) => {
+			if (err) {
+				return next(err);
+			}
+
+			user.password = hash;
+			next();
+		});
+	});
+});
 
 const UserModel = mongoose.model('User', UserSchema);
 
