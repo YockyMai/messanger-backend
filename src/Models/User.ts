@@ -1,6 +1,7 @@
 import mongoose, { Schema } from 'mongoose';
 import isEmail from 'validator/lib/isEmail';
 import bcrypt from 'bcrypt';
+import generatePasswordHash from '../utils/generatePasswordHash';
 
 export interface IUser extends Document {
 	email: string;
@@ -46,6 +47,15 @@ const UserSchema = new Schema<IUser>(
 
 UserSchema.pre('save', function (next) {
 	var user = this;
+
+	generatePasswordHash(user.password)
+		.then(hash => {
+			user.password = hash as string;
+			next();
+		})
+		.catch(err => {
+			next(err);
+		});
 
 	bcrypt.genSalt((err, salt) => {
 		bcrypt.hash(user.password, salt, (err, hash) => {

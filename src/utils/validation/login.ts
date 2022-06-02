@@ -4,8 +4,7 @@ export class LoginValidator {
 	password(password: string) {
 		if (
 			validator.isStrongPassword(password, {
-				minLength: 8,
-				minUppercase: 1,
+				minSymbols: 0,
 			})
 		) {
 			return true;
@@ -17,5 +16,9 @@ export class LoginValidator {
 			return true;
 		}
 		return false;
+	}
+	fullname(fullname: string) {
+		if (fullname.length > 6) return true;
+		else return false;
 	}
 }

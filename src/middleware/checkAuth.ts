@@ -17,7 +17,7 @@ export default (req: any, res: Response, next: NextFunction) => {
 	if (token) {
 		verifyJwtToken(token)
 			.then(user => {
-				req.user = user;
+				req.user = user.data._doc;
 				next();
 			})
 			.catch(() => {

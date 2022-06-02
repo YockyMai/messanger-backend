@@ -1,8 +1,7 @@
-declare namespace Express {
+import { Request } from 'express';
+
+declare module 'express' {
 	export interface Request {
-		user: any;
-	}
-	export interface Response {
-		user: any;
+		user?: any;
 	}
 }

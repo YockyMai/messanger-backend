@@ -7,6 +7,7 @@ interface IUserAuthData {
 }
 
 export default (user: IUserAuthData) => {
+	console.log(user);
 	const data = reduce(
 		user,
 		(result: any, value: string, key: string) => {

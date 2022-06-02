@@ -2,9 +2,17 @@ import { IDialog } from './../Models/Dialogs';
 import express from 'express';
 import { DialogModel, MessageModel, UserModel } from '../Models';
 
+declare module 'express' {
+	export interface Request {
+		user?: any;
+	}
+}
+
 class DialogController {
 	index(req: express.Request, res: express.Response) {
-		const userID = req.params.id;
+		// const { user } = req.body.user;
+		const userID = req.user._id;
+
 		DialogModel.find({ $or: [{ author: userID }, { partner: userID }] })
 			.populate(['author', 'partner'])
 			.exec((err, dialogs) => {
