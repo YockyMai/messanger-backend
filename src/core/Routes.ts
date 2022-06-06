@@ -1,17 +1,20 @@
-import {
-	UserController,
-	AuthController,
-	DialogController,
-	MessageController,
-} from '../Controllers/';
+import { UserCtrl, AuthCtrl, DialogCtrl, MessageCtrl } from '../Controllers/';
 import bodyParser from 'body-parser';
 import updateLastSeen from '../middleware/updateLastSeen';
 import checkAuth from '../middleware/checkAuth';
 import corsMiddleware from '../middleware/cors.middleware';
+import express from 'express';
+import socket from 'socket.io';
+import cors from 'cors';
 
-export default app => {
+export default (app: express.Express, io: socket.Server) => {
+	const UserController = new UserCtrl(io);
+	const MessageController = new MessageCtrl(io);
+	const DialogController = new DialogCtrl(io);
+	const AuthController = new AuthCtrl(io);
+
 	//MIDDELWARE
-	app.use(corsMiddleware);
+	app.use(cors());
 	app.use(updateLastSeen);
 	app.use(checkAuth);
 	app.use(bodyParser.json());
@@ -29,5 +32,7 @@ export default app => {
 	app.get('/message/:id', MessageController.index);
 	app.post('/message', MessageController.create);
 	app.delete('/message/:id', MessageController.delete);
-	app.get('/message/find/:dialog/:text', MessageController.findByText);
+
+	app.get('/find/message/:dialog/:text', MessageController.findByText);
+	app.get('/find/user/:username/:limit', UserController.getUsersByName);
 };

@@ -1,7 +1,7 @@
 import { IDialog } from './../Models/Dialogs';
 import express from 'express';
 import { DialogModel, MessageModel, UserModel } from '../Models';
-
+import socket from 'socket.io';
 declare module 'express' {
 	export interface Request {
 		user?: any;
@@ -9,6 +9,12 @@ declare module 'express' {
 }
 
 class DialogController {
+	io: socket.Server; //inner types
+
+	constructor(io: socket.Server) {
+		this.io = io;
+	}
+
 	index(req: express.Request, res: express.Response) {
 		// const { user } = req.body.user;
 		const userID = req.user._id;

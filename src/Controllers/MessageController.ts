@@ -1,9 +1,14 @@
 import { IMessage } from './../Models/Message';
 import express from 'express';
 import { MessageModel, UserModel } from '../Models';
-
+import socket from 'socket.io';
 class MessageController {
-	async index(req: express.Request, res: express.Response) {
+	io: socket.Server; //inner types
+
+	constructor(io: socket.Server) {
+		this.io = io;
+	}
+	index = (req: express.Request, res: express.Response) => {
 		const dialogID: string = req.params.id;
 		MessageModel.find({ dialog: dialogID })
 			.populate('dialog')
@@ -14,8 +19,8 @@ class MessageController {
 					});
 				return res.json(message);
 			});
-	}
-	findByText(req: express.Request, res: express.Response) {
+	};
+	findByText = (req: express.Request, res: express.Response) => {
 		const text = req.params.text;
 		const dialogID = req.params.dialog;
 
@@ -35,20 +40,27 @@ class MessageController {
 				});
 			},
 		);
-	}
-	create(req: express.Request, res: express.Response) {
-		const { text, dialogID, user } = req.body;
+	};
+	create = (req: express.Request, res: express.Response) => {
+		const { text, dialogID } = req.body;
+		const userId = req.user._id;
 
 		const message = new MessageModel({
 			text,
-			user,
+			user: userId,
 			dialog: dialogID,
 		});
 		message
 			.save()
-			.then((message: IMessage) => {
-				return res.json({
-					message,
+			.then((message: any) => {
+				message.populate('dialog', (err: any, message: any) => {
+					if (err) {
+						return res.status(500).json({
+							message: err,
+						});
+					}
+					res.json(message);
+					this.io.emit('SERVER:NEW_MESSAGE', message);
 				});
 			})
 			.catch(err => {
@@ -56,9 +68,9 @@ class MessageController {
 					err,
 				});
 			});
-	}
+	};
 
-	delete(req: express.Request, res: express.Response) {
+	delete = (req: express.Request, res: express.Response) => {
 		const _id = req.params.id;
 		MessageModel.findByIdAndRemove(_id, (err: Error, message: IMessage) => {
 			if (err) {
@@ -70,7 +82,7 @@ class MessageController {
 				message: `Message "${message.text}" deleted successfully`,
 			});
 		});
-	}
+	};
 }
 
 export default MessageController;

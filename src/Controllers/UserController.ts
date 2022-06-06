@@ -3,8 +3,15 @@ import express from 'express';
 import { UserModel } from '../Models';
 import createJwtToken from '../utils/createJwtToken';
 import { LoginValidator } from '../utils/validation/login';
+import socket from 'socket.io';
 
 class UserController {
+	io: socket.Server; //inner types
+
+	constructor(io: socket.Server) {
+		this.io = io;
+	}
+
 	async index(req: express.Request, res: express.Response) {
 		const id = req.params.id;
 		UserModel.findById(id, (err: Error, user: IUser) => {
@@ -14,6 +21,24 @@ class UserController {
 				});
 			res.send(user);
 		});
+	}
+
+	async getUsersByName(req: express.Request, res: express.Response) {
+		const username = req.params.username;
+		const limit = req.params.limit;
+		console.log(limit);
+		UserModel.find({
+			$and: [{ fullname: { $regex: username, $options: 'i' } }],
+		})
+			.limit(Number(limit))
+			.exec((err: Error, users: IUser[]) => {
+				if (err)
+					return res.status(404).json({
+						message: 'Users not found',
+					});
+				console.log(users);
+				return res.json(users);
+			});
 	}
 
 	async getMe(req: express.Request, res: express.Response) {

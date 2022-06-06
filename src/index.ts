@@ -3,28 +3,23 @@ import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
 import routes from './core/Routes';
+import socket from './core/socket';
 require('dotenv').config();
 
 //SERVER
 const app = express();
 const server = http.createServer(app);
+
+const PORT = process.env.PORT || 3000;
+
 const io = new Server(server, {
 	cors: {
 		origin: '*',
 	},
 });
-const PORT = process.env.PORT || 3000;
 
-routes(app);
-
-//SOCKET ROUTES
-let users = 0;
-
-io.on('connection', socket => {
-	console.log('a user connected');
-	++users;
-	socket.emit('test-command', `${users}`);
-});
+socket(io);
+routes(app, io);
 
 const start = async () => {
 	try {

@@ -7,8 +7,14 @@ import bcrypt from 'bcrypt';
 import { LoginValidator } from '../utils/validation/login';
 import generatePasswordHash from '../utils/generatePasswordHash';
 import verifyUserPassword from '../utils/verifyUserPassword';
-
+import socket from 'socket.io';
 class AuthController {
+	io: socket.Server; //inner types
+
+	constructor(io: socket.Server) {
+		this.io = io;
+	}
+
 	getMe(req: express.Request, res: express.Response) {
 		const token = req.user._id;
 
@@ -77,8 +83,8 @@ class AuthController {
 		}
 
 		UserModel.findOne({ email: email }, (err: Error, user: IUser) => {
-			if (err) {
-				return res.status(404).json({
+			if (err || !user) {
+				return res.json({
 					message: 'User not found',
 				});
 			}
@@ -86,9 +92,14 @@ class AuthController {
 			verifyUserPassword(password, user.password)
 				.then(() => {
 					const token = createJwtToken(user);
-					return res.json({
-						message: 'success',
-						token,
+
+					verifyJwtToken(token).then(userData => {
+						const user = userData.data._doc;
+						return res.json({
+							message: 'success',
+							token,
+							user,
+						});
 					});
 				})
 				.catch(() => {

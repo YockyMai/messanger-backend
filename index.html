@@ -9,9 +9,9 @@
 	<body>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.1/socket.io.js"></script>
 		<script>
-			var io = io('http://localhost:8080');
-
-			io.on('test-command', msg => {
+			var socket = io('http://localhost:8080');
+			window.socket = socket;
+			socket.on('SERVER:NEW_MESSAGE', msg => {
 				console.log(msg);
 			});
 		</script>
