@@ -1,12 +1,13 @@
 {
 	"name": "backend",
 	"version": "1.0.0",
-	"main": "index.js",
+	"main": "dist/index.js",
 	"license": "MIT",
 	"scripts": {
 		"json": "json-server --watch db.json --port 8080",
 		"dev": "nodemon src/index.js",
-		"start": "ts-node src/index.ts"
+		"start": "ts-node src/index.ts",
+		"build": "tsc && node dist/index.js"
 	},
 	"dependencies": {
 		"@types/bcrypt": "^5.0.0",
