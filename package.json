@@ -7,7 +7,7 @@
 		"json": "json-server --watch db.json --port 8080",
 		"dev": "nodemon src/index.js",
 		"start": "ts-node src/index.ts",
-		"build": "tsc && node dist/index.js"
+		"build": "tsc"
 	},
 	"dependencies": {
 		"@types/bcrypt": "^5.0.0",
