@@ -58,17 +58,18 @@ class MessageController {
 		message
 			.save()
 			.then((message: any) => {
-				message.populate('dialog', (err: any, message: any) => {
-					if (err) {
-						return res.status(500).json({
-							message: err,
-						});
-					}
-
-					res.json(message);
-
-					this.io.emit('SERVER:NEW_MESSAGE', message);
-				});
+				message.populate(
+					['dialog', 'user'],
+					(err: any, message: any) => {
+						if (err) {
+							return res.status(500).json({
+								message: err,
+							});
+						}
+						res.json(message);
+						this.io.emit('SERVER:NEW_MESSAGE', message);
+					},
+				);
 			})
 			.catch(err => {
 				return res.json({

@@ -1,4 +1,3 @@
-import { IDialog } from './../Models/Dialogs';
 import express from 'express';
 import { DialogModel, MessageModel, UserModel } from '../Models';
 import socket from 'socket.io';
