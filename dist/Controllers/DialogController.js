@@ -12,38 +12,39 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const Models_1 = require("../Models");
 class DialogController {
     constructor(io) {
-        this.io = io;
-    }
-    index(req, res) {
-        // const { user } = req.body.user;
-        const userID = req.user._id;
-        Models_1.DialogModel.find({ $or: [{ author: userID }, { partner: userID }] })
-            .populate(['author', 'partner'])
-            .exec((err, dialogs) => {
-            if (err) {
-                return res.status(404).json({ message: err });
-            }
-            return res.json(dialogs);
-        });
-    }
-    create(req, res) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const { author, partner, text } = req.body;
+        this.create = (req, res) => __awaiter(this, void 0, void 0, function* () {
+            const { partner, text } = req.body;
+            const author = req.user._id;
             const existAuthor = yield Models_1.UserModel.findById(author);
             const existPartner = yield Models_1.UserModel.findById(partner);
             const Dialog = new Models_1.DialogModel({ author, partner });
             if (existAuthor && existPartner) {
                 Dialog.save()
                     .then(dialog => {
-                    const Message = new Models_1.MessageModel({
-                        text,
-                        dialog: dialog._id,
-                        user: author,
-                    });
-                    Message.save().then(messageObj => {
-                        return res.json({
-                            messageObj,
-                            dialog,
+                    Models_1.DialogModel.findById(dialog._id)
+                        .populate(['author', 'partner'])
+                        .exec((err, dialogs) => {
+                        if (err) {
+                            return res.status(404).json({ message: err });
+                        }
+                        const Message = new Models_1.MessageModel({
+                            text,
+                            dialog: dialog._id,
+                            user: author,
+                        });
+                        Message.save().then(messageObj => {
+                            this.io.emit('SERVER:DIALOG_CREATED', {
+                                contributors: {
+                                    partner,
+                                    author,
+                                },
+                                messageObj,
+                                dialogs,
+                            });
+                            return res.json({
+                                messageObj,
+                                dialogs,
+                            });
                         });
                     });
                 })
@@ -58,6 +59,19 @@ class DialogController {
                     message: 'Users not found',
                 });
             }
+        });
+        this.io = io;
+    }
+    index(req, res) {
+        // const { user } = req.body.user;
+        const userID = req.user._id;
+        Models_1.DialogModel.find({ $or: [{ author: userID }, { partner: userID }] })
+            .populate(['author', 'partner'])
+            .exec((err, dialogs) => {
+            if (err) {
+                return res.status(404).json({ message: err });
+            }
+            return res.json(dialogs);
         });
     }
 }
