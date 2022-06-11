@@ -2,6 +2,11 @@ import { IMessage } from './../Models/Message';
 import express from 'express';
 import { MessageModel, UserModel } from '../Models';
 import socket from 'socket.io';
+declare module 'express' {
+	export interface Request {
+		user?: any;
+	}
+}
 class MessageController {
 	io: socket.Server; //inner types
 
@@ -59,7 +64,9 @@ class MessageController {
 							message: err,
 						});
 					}
+
 					res.json(message);
+
 					this.io.emit('SERVER:NEW_MESSAGE', message);
 				});
 			})

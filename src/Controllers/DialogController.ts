@@ -2,11 +2,6 @@ import { IDialog } from './../Models/Dialogs';
 import express from 'express';
 import { DialogModel, MessageModel, UserModel } from '../Models';
 import socket from 'socket.io';
-declare module 'express' {
-	export interface Request {
-		user?: any;
-	}
-}
 
 class DialogController {
 	io: socket.Server; //inner types
@@ -28,8 +23,9 @@ class DialogController {
 				return res.json(dialogs);
 			});
 	}
-	async create(req: express.Request, res: express.Response) {
-		const { author, partner, text } = req.body;
+	create = async (req: express.Request, res: express.Response) => {
+		const { partner, text } = req.body;
+		const author = req.user._id;
 
 		const existAuthor = await UserModel.findById(author);
 		const existPartner = await UserModel.findById(partner);
@@ -39,17 +35,34 @@ class DialogController {
 		if (existAuthor && existPartner) {
 			Dialog.save()
 				.then(dialog => {
-					const Message = new MessageModel({
-						text,
-						dialog: dialog._id,
-						user: author,
-					});
-					Message.save().then(messageObj => {
-						return res.json({
-							messageObj,
-							dialog,
+					DialogModel.findById(dialog._id)
+						.populate(['author', 'partner'])
+						.exec((err, dialogs) => {
+							if (err) {
+								return res.status(404).json({ message: err });
+							}
+
+							const Message = new MessageModel({
+								text,
+								dialog: dialog._id,
+								user: author,
+							});
+							Message.save().then(messageObj => {
+								this.io.emit('SERVER:DIALOG_CREATED', {
+									contributors: {
+										partner,
+										author,
+									},
+									messageObj,
+									dialogs,
+								});
+
+								return res.json({
+									messageObj,
+									dialogs,
+								});
+							});
 						});
-					});
 				})
 				.catch(err => {
 					return res.status(400).json({
@@ -61,7 +74,7 @@ class DialogController {
 				message: 'Users not found',
 			});
 		}
-	}
+	};
 }
 
 export default DialogController;

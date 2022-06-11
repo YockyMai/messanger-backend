@@ -2,7 +2,6 @@ import { UserCtrl, AuthCtrl, DialogCtrl, MessageCtrl } from '../Controllers/';
 import bodyParser from 'body-parser';
 import updateLastSeen from '../middleware/updateLastSeen';
 import checkAuth from '../middleware/checkAuth';
-import corsMiddleware from '../middleware/cors.middleware';
 import express from 'express';
 import socket from 'socket.io';
 import cors from 'cors';
