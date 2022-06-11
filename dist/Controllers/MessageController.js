@@ -43,7 +43,7 @@ class MessageController {
             message
                 .save()
                 .then((message) => {
-                message.populate('dialog', (err, message) => {
+                message.populate(['dialog', 'user'], (err, message) => {
                     if (err) {
                         return res.status(500).json({
                             message: err,
