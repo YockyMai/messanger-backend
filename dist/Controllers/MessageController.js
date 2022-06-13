@@ -67,9 +67,21 @@ class MessageController {
                         message: `Message ${message.text} not found`,
                     });
                 }
+                this.io.emit('SERVER:DELETE_MESSAGE', message);
                 return res.json({
                     message: `Message "${message.text}" deleted successfully`,
                 });
+            });
+        };
+        this.clearChatMessages = (req, res) => {
+            const dialogID = req.params.id;
+            Models_1.MessageModel.deleteMany({ dialog: dialogID }, (err, deletedMessages) => {
+                if (err) {
+                    return res.status(404).json({
+                        message: 'messages with current dialogId not found',
+                    });
+                }
+                this.io.emit('SERVER:DELETE_ALL_MESSAGES', deletedMessages);
             });
         };
         this.io = io;

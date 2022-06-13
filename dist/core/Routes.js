@@ -29,6 +29,7 @@ exports.default = (app, io) => {
     app.get('/message/:id', MessageController.index);
     app.post('/message', MessageController.create);
     app.delete('/message/:id', MessageController.delete);
+    app.delete('/messageAll/:id', MessageController.clearChatMessages);
     app.get('/find/message/:dialog/:text', MessageController.findByText);
     app.get('/find/user/:username/:limit', UserController.getUsersByName);
 };

@@ -6,10 +6,15 @@ export default (
 	res: express.Response,
 	next: express.NextFunction,
 ) => {
-	UserModel.updateOne(
-		{ _id: '628905ae0d62a56dd309ad71' },
-		{ $set: { last_seen: new Date() } },
-	);
+	if (req.user) {
+		UserModel.findOneAndUpdate(
+			{ _id: req.user.id },
+			{
+				last_seen: new Date(),
+			},
+			{ new: true },
+		);
+	}
 
 	next();
 };
