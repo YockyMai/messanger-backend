@@ -30,7 +30,6 @@ class UserController {
         return __awaiter(this, void 0, void 0, function* () {
             const username = req.params.username;
             const limit = req.params.limit;
-            console.log(limit);
             Models_1.UserModel.find({
                 $and: [{ fullname: { $regex: username, $options: 'i' } }],
             })
@@ -40,7 +39,6 @@ class UserController {
                     return res.status(404).json({
                         message: 'Users not found',
                     });
-                console.log(users);
                 return res.json(users);
             });
         });
@@ -65,7 +63,6 @@ class UserController {
                     message: 'User not found',
                 });
             }
-            console.log(doc);
             return res.status(200).json({
                 message: 'User deleted successfully',
             });

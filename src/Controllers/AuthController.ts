@@ -18,8 +18,6 @@ class AuthController {
 	getMe(req: express.Request, res: express.Response) {
 		const token = req.user._id;
 
-		console.log(token);
-
 		verifyJwtToken(token as string)
 			.then(decodedToken => {
 				return res.json({

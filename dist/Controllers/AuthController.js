@@ -14,7 +14,6 @@ class AuthController {
     }
     getMe(req, res) {
         const token = req.user._id;
-        console.log(token);
         (0, verifyJwtToken_1.default)(token)
             .then(decodedToken => {
             return res.json({

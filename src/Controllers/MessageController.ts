@@ -108,6 +108,35 @@ class MessageController {
 			},
 		);
 	};
+
+	updateMessage = (req: express.Request, res: express.Response) => {
+		const { text, id } = req.body;
+
+		MessageModel.findByIdAndUpdate(
+			id,
+			{ text: text, updated: true },
+			(err: Error, updatedMessage: IMessage) => {
+				if (err) {
+					return res.status(404).json({
+						message: 'messages not found',
+					});
+				}
+
+				MessageModel.find({ _id: updatedMessage._id })
+					.populate(['dialog', 'user'])
+					.exec((err, message) => {
+						if (err) {
+							console.log(err);
+						}
+						this.io.emit('SERVER:UPDATE_MESSAGE', message[0]);
+
+						return res.json({
+							message: message[0],
+						});
+					});
+			},
+		);
+	};
 }
 
 export default MessageController;

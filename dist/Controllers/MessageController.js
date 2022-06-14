@@ -84,6 +84,27 @@ class MessageController {
                 this.io.emit('SERVER:DELETE_ALL_MESSAGES', deletedMessages);
             });
         };
+        this.updateMessage = (req, res) => {
+            const { text, id } = req.body;
+            Models_1.MessageModel.findByIdAndUpdate(id, { text: text, updated: true }, (err, updatedMessage) => {
+                if (err) {
+                    return res.status(404).json({
+                        message: 'messages not found',
+                    });
+                }
+                Models_1.MessageModel.find({ _id: updatedMessage._id })
+                    .populate(['dialog', 'user'])
+                    .exec((err, message) => {
+                    if (err) {
+                        console.log(err);
+                    }
+                    this.io.emit('SERVER:UPDATE_MESSAGE', message[0]);
+                    return res.json({
+                        message: message[0],
+                    });
+                });
+            });
+        };
         this.io = io;
     }
 }

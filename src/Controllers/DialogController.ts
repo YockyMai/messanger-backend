@@ -13,6 +13,8 @@ class DialogController {
 		// const { user } = req.body.user;
 		const userID = req.user._id;
 
+		console.log(userID);
+
 		DialogModel.find({ $or: [{ author: userID }, { partner: userID }] })
 			.populate(['author', 'partner'])
 			.exec((err, dialogs) => {

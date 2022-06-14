@@ -14,7 +14,7 @@ exports.default = (app, io) => {
     const DialogController = new Controllers_1.DialogCtrl(io);
     const AuthController = new Controllers_1.AuthCtrl(io);
     //MIDDELWARE
-    app.use((0, cors_1.default)());
+    app.use((0, cors_1.default)({ origin: '*' }));
     app.use(updateLastSeen_1.default);
     app.use(checkAuth_1.default);
     app.use(body_parser_1.default.json());
@@ -30,6 +30,7 @@ exports.default = (app, io) => {
     app.post('/message', MessageController.create);
     app.delete('/message/:id', MessageController.delete);
     app.delete('/messageAll/:id', MessageController.clearChatMessages);
+    app.post('/messageupdate', MessageController.updateMessage);
     app.get('/find/message/:dialog/:text', MessageController.findByText);
     app.get('/find/user/:username/:limit', UserController.getUsersByName);
 };

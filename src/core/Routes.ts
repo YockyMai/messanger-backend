@@ -13,7 +13,7 @@ export default (app: express.Express, io: socket.Server) => {
 	const AuthController = new AuthCtrl(io);
 
 	//MIDDELWARE
-	app.use(cors());
+	app.use(cors({ origin: '*' }));
 	app.use(updateLastSeen);
 	app.use(checkAuth);
 	app.use(bodyParser.json());
@@ -32,6 +32,7 @@ export default (app: express.Express, io: socket.Server) => {
 	app.post('/message', MessageController.create);
 	app.delete('/message/:id', MessageController.delete);
 	app.delete('/messageAll/:id', MessageController.clearChatMessages);
+	app.post('/messageupdate', MessageController.updateMessage);
 
 	app.get('/find/message/:dialog/:text', MessageController.findByText);
 	app.get('/find/user/:username/:limit', UserController.getUsersByName);

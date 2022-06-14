@@ -6,14 +6,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const lodash_1 = require("lodash");
 exports.default = (user) => {
-    console.log(user);
     const data = (0, lodash_1.reduce)(user, (result, value, key) => {
         if (key !== 'password') {
             result[key] = value;
         }
         return result;
     }, {});
-    console.log(data);
     let token = jsonwebtoken_1.default.sign({
         data,
     }, process.env.JWT_SECRET, {
