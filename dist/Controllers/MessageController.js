@@ -1,4 +1,13 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const Models_1 = require("../Models");
 class MessageController {
@@ -49,8 +58,15 @@ class MessageController {
                             message: err,
                         });
                     }
-                    res.json(message);
-                    this.io.emit('SERVER:NEW_MESSAGE', message);
+                    Models_1.DialogModel.findByIdAndUpdate(message.dialog._id, {
+                        lastMessage: message._id,
+                    }, (err, dialog) => {
+                        res.json(message);
+                        this.io.emit('SERVER:NEW_MESSAGE', {
+                            message,
+                            dialog,
+                        });
+                    });
                 });
             })
                 .catch(err => {
@@ -61,17 +77,51 @@ class MessageController {
         };
         this.delete = (req, res) => {
             const _id = req.params.id;
-            Models_1.MessageModel.findByIdAndRemove(_id, (err, message) => {
+            Models_1.MessageModel.findByIdAndRemove(_id, (err, message) => __awaiter(this, void 0, void 0, function* () {
                 if (err) {
                     return res.status(404).json({
-                        message: `Message ${message.text} not found`,
+                        message: `Message not found`,
                     });
                 }
-                this.io.emit('SERVER:DELETE_MESSAGE', message);
-                return res.json({
-                    message: `Message "${message.text}" deleted successfully`,
-                });
-            });
+                const lastMsg = yield Models_1.MessageModel.find({
+                    dialog: message.dialog,
+                })
+                    .populate(['dialog', 'user'])
+                    .limit(1)
+                    .sort({ $natural: -1 });
+                console.log(lastMsg);
+                if (lastMsg.length <= 0) {
+                    Models_1.DialogModel.findByIdAndUpdate(message.dialog, { $unset: { lastMessage: 1 } }, (err, dialog) => {
+                        if (err) {
+                            console.log(err);
+                            return;
+                        }
+                        console.log(dialog);
+                        this.io.emit('SERVER:DELETE_MESSAGE', {
+                            message,
+                        });
+                        return res.json({
+                            message: `Message "${message.text}" deleted successfully`,
+                        });
+                    });
+                }
+                else {
+                    Models_1.DialogModel.findByIdAndUpdate(message.dialog, { lastMessage: lastMsg[0]._id }, (err, dialog) => {
+                        if (err) {
+                            console.log(err);
+                            return;
+                        }
+                        console.log(dialog);
+                        this.io.emit('SERVER:DELETE_MESSAGE', {
+                            message,
+                            lastMsg,
+                        });
+                        return res.json({
+                            message: `Message "${message.text}" deleted successfully`,
+                        });
+                    });
+                }
+            }));
         };
         this.clearChatMessages = (req, res) => {
             const dialogID = req.params.id;

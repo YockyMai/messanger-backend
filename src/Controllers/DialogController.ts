@@ -1,6 +1,7 @@
 import express from 'express';
 import { DialogModel, MessageModel, UserModel } from '../Models';
 import socket from 'socket.io';
+import { IMessage } from '../Models/Message';
 
 class DialogController {
 	io: socket.Server; //inner types
@@ -16,7 +17,7 @@ class DialogController {
 		console.log(userID);
 
 		DialogModel.find({ $or: [{ author: userID }, { partner: userID }] })
-			.populate(['author', 'partner'])
+			.populate(['author', 'partner', 'lastMessage'])
 			.exec((err, dialogs) => {
 				if (err) {
 					return res.status(404).json({ message: err });
@@ -48,19 +49,25 @@ class DialogController {
 								dialog: dialog._id,
 								user: author,
 							});
-							Message.save().then(messageObj => {
-								this.io.emit('SERVER:DIALOG_CREATED', {
-									contributors: {
-										partner,
-										author,
-									},
-									messageObj,
-									dialogs,
-								});
+							Message.save().then((messageObj: IMessage) => {
+								dialogs.lastMessage = messageObj._id;
+								dialogs.save().then(() => {
+									const dialogObj = dialogs;
+									dialogObj.lastMessage = messageObj;
 
-								return res.json({
-									messageObj,
-									dialogs,
+									this.io.emit('SERVER:DIALOG_CREATED', {
+										contributors: {
+											partner,
+											author,
+										},
+										messageObj,
+										dialogs,
+									});
+
+									return res.json({
+										messageObj,
+										dialogs,
+									});
 								});
 							});
 						});

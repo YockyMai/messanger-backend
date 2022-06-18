@@ -1,6 +1,6 @@
 import { IMessage } from './../Models/Message';
 import express from 'express';
-import { MessageModel, UserModel } from '../Models';
+import { DialogModel, MessageModel, UserModel } from '../Models';
 import socket from 'socket.io';
 declare module 'express' {
 	export interface Request {
@@ -66,8 +66,19 @@ class MessageController {
 								message: err,
 							});
 						}
-						res.json(message);
-						this.io.emit('SERVER:NEW_MESSAGE', message);
+						DialogModel.findByIdAndUpdate(
+							message.dialog._id,
+							{
+								lastMessage: message._id,
+							},
+							(err, dialog) => {
+								res.json(message);
+								this.io.emit('SERVER:NEW_MESSAGE', {
+									message,
+									dialog,
+								});
+							},
+						);
 					},
 				);
 			})
@@ -80,18 +91,63 @@ class MessageController {
 
 	delete = (req: express.Request, res: express.Response) => {
 		const _id = req.params.id;
-		MessageModel.findByIdAndRemove(_id, (err: Error, message: IMessage) => {
-			if (err) {
-				return res.status(404).json({
-					message: `Message ${message.text} not found`,
-				});
-			}
+		MessageModel.findByIdAndRemove(
+			_id,
+			async (err: Error, message: IMessage) => {
+				if (err) {
+					return res.status(404).json({
+						message: `Message not found`,
+					});
+				}
+				const lastMsg: any = await MessageModel.find({
+					dialog: message.dialog,
+				})
+					.populate(['dialog', 'user'])
+					.limit(1)
+					.sort({ $natural: -1 });
 
-			this.io.emit('SERVER:DELETE_MESSAGE', message);
-			return res.json({
-				message: `Message "${message.text}" deleted successfully`,
-			});
-		});
+				console.log(lastMsg);
+
+				if (lastMsg.length <= 0) {
+					DialogModel.findByIdAndUpdate(
+						message.dialog,
+						{ $unset: { lastMessage: 1 } },
+						(err: Error, dialog) => {
+							if (err) {
+								console.log(err);
+								return;
+							}
+							console.log(dialog);
+							this.io.emit('SERVER:DELETE_MESSAGE', {
+								message,
+							});
+							return res.json({
+								message: `Message "${message.text}" deleted successfully`,
+							});
+						},
+					);
+				} else {
+					DialogModel.findByIdAndUpdate(
+						message.dialog,
+						{ lastMessage: lastMsg[0]._id },
+						(err: Error, dialog) => {
+							if (err) {
+								console.log(err);
+								return;
+							}
+							console.log(dialog);
+							this.io.emit('SERVER:DELETE_MESSAGE', {
+								message,
+								lastMsg,
+							});
+							return res.json({
+								message: `Message "${message.text}" deleted successfully`,
+							});
+						},
+					);
+				}
+			},
+		);
 	};
 
 	clearChatMessages = (req: express.Request, res: express.Response) => {

@@ -11,10 +11,7 @@ export interface IDialog extends Document {
 		ref: string;
 		required: boolean;
 	};
-	lastMessage: {
-		type: Schema.Types.ObjectId;
-		ref: string;
-	};
+	lastMessage: Schema.Types.ObjectId | string | any;
 }
 
 const DialogSchema = new Schema<IDialog>(

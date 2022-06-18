@@ -32,18 +32,23 @@ class DialogController {
                             dialog: dialog._id,
                             user: author,
                         });
-                        Message.save().then(messageObj => {
-                            this.io.emit('SERVER:DIALOG_CREATED', {
-                                contributors: {
-                                    partner,
-                                    author,
-                                },
-                                messageObj,
-                                dialogs,
-                            });
-                            return res.json({
-                                messageObj,
-                                dialogs,
+                        Message.save().then((messageObj) => {
+                            dialogs.lastMessage = messageObj._id;
+                            dialogs.save().then(() => {
+                                const dialogObj = dialogs;
+                                dialogObj.lastMessage = messageObj;
+                                this.io.emit('SERVER:DIALOG_CREATED', {
+                                    contributors: {
+                                        partner,
+                                        author,
+                                    },
+                                    messageObj,
+                                    dialogs,
+                                });
+                                return res.json({
+                                    messageObj,
+                                    dialogs,
+                                });
                             });
                         });
                     });
@@ -67,7 +72,7 @@ class DialogController {
         const userID = req.user._id;
         console.log(userID);
         Models_1.DialogModel.find({ $or: [{ author: userID }, { partner: userID }] })
-            .populate(['author', 'partner'])
+            .populate(['author', 'partner', 'lastMessage'])
             .exec((err, dialogs) => {
             if (err) {
                 return res.status(404).json({ message: err });
