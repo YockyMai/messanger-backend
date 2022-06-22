@@ -1,16 +1,24 @@
-import { UserCtrl, AuthCtrl, DialogCtrl, MessageCtrl } from '../Controllers/';
+import {
+	UserCtrl,
+	AuthCtrl,
+	DialogCtrl,
+	MessageCtrl,
+	UploadCtrl,
+} from '../Controllers/';
 import bodyParser from 'body-parser';
 import updateLastSeen from '../middleware/updateLastSeen';
 import checkAuth from '../middleware/checkAuth';
 import express from 'express';
 import socket from 'socket.io';
 import cors from 'cors';
+import { uploader } from './cloudinary';
 
 export default (app: express.Express, io: socket.Server) => {
 	const UserController = new UserCtrl(io);
 	const MessageController = new MessageCtrl(io);
 	const DialogController = new DialogCtrl(io);
 	const AuthController = new AuthCtrl(io);
+	const UploadController = new UploadCtrl();
 
 	//MIDDELWARE
 	app.use(cors({ origin: '*' }));
@@ -36,4 +44,12 @@ export default (app: express.Express, io: socket.Server) => {
 
 	app.get('/find/message/:dialog/:text', MessageController.findByText);
 	app.get('/find/user/:username/:limit', UserController.getUsersByName);
+
+	app.delete('/files', UploadController.delete);
+	app.post('/files', uploader.single('image'), UploadController.create);
+	app.post(
+		'/files/avatar',
+		uploader.single('image'),
+		UploadController.createAvatarPhoto,
+	);
 };

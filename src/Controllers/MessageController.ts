@@ -7,14 +7,45 @@ declare module 'express' {
 		user?: any;
 	}
 }
+
 class MessageController {
 	io: socket.Server; //inner types
 
 	constructor(io: socket.Server) {
 		this.io = io;
 	}
+
+	updateReadStatus = (
+		res: express.Response,
+		userId: string,
+		dialogId: string,
+	): void => {
+		MessageModel.updateMany(
+			{ dialog: dialogId, user: { $ne: userId } },
+			{ $set: { unread: true } },
+			(err: any): void => {
+				if (err) {
+					res.status(500).json({
+						status: 'error',
+						message: err,
+					});
+				} else {
+					this.io.emit('SERVER:MESSAGES_READED', {
+						userId,
+						dialogId,
+					});
+				}
+			},
+		);
+	};
+
 	index = (req: express.Request, res: express.Response) => {
 		const dialogID: string = req.params.id;
+
+		const userID: string = req.user._id;
+
+		this.updateReadStatus(res, userID, dialogID);
+
 		MessageModel.find({ dialog: dialogID })
 			.populate(['dialog', 'user'])
 			.exec((err, message) => {
@@ -55,6 +86,9 @@ class MessageController {
 			user: userId,
 			dialog: dialogID,
 		});
+
+		this.updateReadStatus(res, userId, dialogID);
+
 		message
 			.save()
 			.then((message: any) => {

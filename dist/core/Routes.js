@@ -8,11 +8,13 @@ const body_parser_1 = __importDefault(require("body-parser"));
 const updateLastSeen_1 = __importDefault(require("../middleware/updateLastSeen"));
 const checkAuth_1 = __importDefault(require("../middleware/checkAuth"));
 const cors_1 = __importDefault(require("cors"));
+const cloudinary_1 = require("./cloudinary");
 exports.default = (app, io) => {
     const UserController = new Controllers_1.UserCtrl(io);
     const MessageController = new Controllers_1.MessageCtrl(io);
     const DialogController = new Controllers_1.DialogCtrl(io);
     const AuthController = new Controllers_1.AuthCtrl(io);
+    const UploadController = new Controllers_1.UploadCtrl();
     //MIDDELWARE
     app.use((0, cors_1.default)({ origin: '*' }));
     app.use(updateLastSeen_1.default);
@@ -33,5 +35,8 @@ exports.default = (app, io) => {
     app.post('/messageupdate', MessageController.updateMessage);
     app.get('/find/message/:dialog/:text', MessageController.findByText);
     app.get('/find/user/:username/:limit', UserController.getUsersByName);
+    app.delete('/files', UploadController.delete);
+    app.post('/files', cloudinary_1.uploader.single('image'), UploadController.create);
+    app.post('/files/avatar', cloudinary_1.uploader.single('image'), UploadController.createAvatarPhoto);
 };
 //# sourceMappingURL=Routes.js.map

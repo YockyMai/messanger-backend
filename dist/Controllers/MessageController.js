@@ -12,8 +12,26 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const Models_1 = require("../Models");
 class MessageController {
     constructor(io) {
+        this.updateReadStatus = (res, userId, dialogId) => {
+            Models_1.MessageModel.updateMany({ dialog: dialogId, user: { $ne: userId } }, { $set: { unread: true } }, (err) => {
+                if (err) {
+                    res.status(500).json({
+                        status: 'error',
+                        message: err,
+                    });
+                }
+                else {
+                    this.io.emit('SERVER:MESSAGES_READED', {
+                        userId,
+                        dialogId,
+                    });
+                }
+            });
+        };
         this.index = (req, res) => {
             const dialogID = req.params.id;
+            const userID = req.user._id;
+            this.updateReadStatus(res, userID, dialogID);
             Models_1.MessageModel.find({ dialog: dialogID })
                 .populate(['dialog', 'user'])
                 .exec((err, message) => {
@@ -49,6 +67,7 @@ class MessageController {
                 user: userId,
                 dialog: dialogID,
             });
+            this.updateReadStatus(res, userId, dialogID);
             message
                 .save()
                 .then((message) => {
